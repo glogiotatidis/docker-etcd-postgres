@@ -1,0 +1,37 @@
+[Unit]
+Description=Postgres service on port %i
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+Requires=postgres-discovery@%i.service
+
+# Dependency ordering
+After=etcd.service
+After=docker.service
+Before=postgres-discovery@%i.service
+
+[Service]
+# Let processes take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Pre-start and Start
+## Directives with "=-" are allowed to fail without consequence
+ExecStartPre=-/usr/bin/docker kill postgres.%i
+ExecStartPre=-/usr/bin/docker rm postgres.%i
+ExecStartPre=/usr/bin/docker pull postgres
+ExecStart=/usr/bin/docker run --name postgres.%i -p ${COREOS_PRIVATE_IPV4}:%i:5432 \
+postgres 
+
+# Stop
+ExecStop=/usr/bin/docker stop postgres.%i
+
+[X-Fleet]
+X-Conflicts=postgres@*.service
