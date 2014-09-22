@@ -17,10 +17,11 @@ EnvironmentFile=/etc/environment
 
 # Start
 ## Test whether service is accessible and then register useful information
+## Code 52: Empty reply from server, this means port is open
 ExecStart=/bin/bash -c '\
   while true; do \
     curl -f ${COREOS_PRIVATE_IPV4}:%i; \
-    if [ $? -eq 0 ]; then \
+    if [ $? -eq 52 ]; then \
       etcdctl set /services/postgres/${COREOS_PRIVATE_IPV4} \'${COREOS_PRIVATE_IPV4}:%i\' --ttl 30; \
     else \
       etcdctl rm /services/postgres/${COREOS_PRIVATE_IPV4}; \
