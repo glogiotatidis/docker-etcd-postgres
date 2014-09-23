@@ -1,15 +1,14 @@
 [Unit]
-Description=Postgres service on port %i
+Description=Postgres service
 
 # Requirements
 Requires=etcd.service
 Requires=docker.service
-Requires=postgres-discovery@%i.service
 
 # Dependency ordering
 After=etcd.service
 After=docker.service
-Before=postgres-discovery@%i.service
+Before=postgres-discovery.service
 
 [Service]
 # Let processes take awhile to start up (for first run Docker containers)
@@ -24,14 +23,14 @@ EnvironmentFile=/etc/environment
 
 # Pre-start and Start
 ## Directives with "=-" are allowed to fail without consequence
-ExecStartPre=-/usr/bin/docker kill postgres.%i
-ExecStartPre=-/usr/bin/docker rm postgres.%i
+ExecStartPre=-/usr/bin/docker kill postgres
+ExecStartPre=-/usr/bin/docker rm postgres
 ExecStartPre=/usr/bin/docker pull postgres
-ExecStart=/usr/bin/docker run --name postgres.%i -p ${COREOS_PRIVATE_IPV4}:%i:5432 \
+ExecStart=/usr/bin/docker run --name postgres -p ${COREOS_PRIVATE_IPV4}:5432:5432 \
 postgres 
 
 # Stop
-ExecStop=/usr/bin/docker stop postgres.%i
+ExecStop=/usr/bin/docker stop postgres
 
 [X-Fleet]
-X-Conflicts=postgres@*.service
+X-Conflicts=postgres.service

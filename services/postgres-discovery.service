@@ -1,14 +1,14 @@
 [Unit]
-Description=Postgres on port %i etcd registration
+Description=Postgres Etcd registration
 
 # Requirements
 Requires=etcd.service
-Requires=postgres@%i.service
+Requires=postgres.service
 
 # Dependency ordering and binding
 After=etcd.service
-After=postgres@%i.service
-BindsTo=postgres@%i.service
+After=postgres.service
+BindsTo=postgres.service
 
 [Service]
 
@@ -20,9 +20,9 @@ EnvironmentFile=/etc/environment
 ## Code 52: Empty reply from server, this means port is open
 ExecStart=/bin/bash -c '\
   while true; do \
-    curl -f ${COREOS_PRIVATE_IPV4}:%i; \
+    curl -f ${COREOS_PRIVATE_IPV4}:5432; \
     if [ $? -eq 52 ]; then \
-      etcdctl set /services/postgres/${COREOS_PRIVATE_IPV4} \'${COREOS_PRIVATE_IPV4}:%i\' --ttl 30; \
+      etcdctl set /services/postgres/${COREOS_PRIVATE_IPV4} \'${COREOS_PRIVATE_IPV4}:5432\' --ttl 30; \
     else \
       etcdctl rm /services/postgres/${COREOS_PRIVATE_IPV4}; \
     fi; \
@@ -34,4 +34,4 @@ ExecStop=/usr/bin/etcdctl rm /services/postgres/${COREOS_PRIVATE_IPV4}
 
 [X-Fleet]
 # Schedule on the same machine as the associated Postgres service
-X-ConditionMachineOf=postgres@%i.service
+X-ConditionMachineOf=postgres.service
